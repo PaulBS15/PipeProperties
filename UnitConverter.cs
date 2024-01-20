@@ -34,6 +34,7 @@ namespace UCon {
 				sharedUnitConverter = new UnitConverter();
 			}
 			if (Value == null) Value = 1.0;
+			Debug.WriteLine($"Leftside: {LeftSide}, Rightside {RightSide}, Value: {Value}");
 			return sharedUnitConverter.Convert(LeftSide, RightSide, Value);
 		}
 
@@ -97,8 +98,8 @@ namespace UCon {
 			string strippedRightSide = "";
 
 			StringBuilder message = new StringBuilder();
-			if (double.TryParse(LeftSidetrim, out double double1)) message.Append("To Parameter (" + LeftSidetrim + ") ");
-			if (RightSidetrim.Length > 0 && double.TryParse(RightSidetrim, out double double2)) {
+			if (double.TryParse(LeftSidetrim, out double _)) message.Append("To Parameter (" + LeftSidetrim + ") ");
+			if (RightSidetrim.Length > 0 && double.TryParse(RightSidetrim, out double _)) {
 				if (message.Length > 0) message.Append("and From Parameter (" + RightSidetrim + ") are ");
 				else message.Append("From Parameter (" + RightSidetrim + ") ");
 			}
@@ -180,7 +181,7 @@ namespace UCon {
 					pressureToGauge = GaugePressure / rightSide.Value;
 				}
 
-				Unit u = leftSide/rightSide;
+				u = leftSide/rightSide;
 				foreach (double d in u.D) {
 					if (Math.Abs(d / 1e-6) > 1.0) throw new BaseDimensionsDontMatchException(leftSide, rightSide);
 				}
@@ -515,7 +516,7 @@ namespace UCon {
 			Debug.WriteLine(Expression);
 			if (Expression == "mmHg") return false;
 			foreach (string suffix in Unit.Suffixes) {
-				Debug.WriteLine(suffix + Expression.EndsWith(suffix).ToString());
+				//Debug.WriteLine(suffix + Expression.EndsWith(suffix).ToString());
 				if (Expression.EndsWith(suffix)) {
 					StrippedExpression = Expression.Substring(0, Expression.Length - suffix.Length);
 					return true;
