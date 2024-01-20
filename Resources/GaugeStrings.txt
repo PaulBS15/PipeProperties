@@ -1,0 +1,17 @@
+﻿*Gauge
+,Gauge
+-Gauge
+Gauge
+*gauge
+,gauge
+-gauge
+gauge
+*Ga
+,Ga
+-Ga
+*ga
+,ga
+-ga
+,g
+-g
+g
