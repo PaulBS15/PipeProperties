@@ -11,7 +11,7 @@ namespace UCon {
 	public class Unit : Token {
 
 		public double Value { get; internal set; }
-		public string FullName { get; }
+		public string FullName { get; internal set; }
 		public string BaseUnit { get; }
 		public string NISTValue { get; }
 		public string Comment1 { get; }
@@ -69,7 +69,7 @@ namespace UCon {
 			get { return d; }
 		}
 
-		public Unit(string Name,double Value, double[] Dim, string BaseUnit, string FullName, string NISTValue, string Comment1, string Comment2) : this(Name, Value, Dim)  {
+		public Unit(string Name,double Value, double[] Dim, string BaseUnit, string _, string NISTValue, string Comment1, string Comment2) : this(Name, Value, Dim)  {
 			this.BaseUnit = BaseUnit;
 			this.NISTValue = NISTValue;
 			this.Comment1 = Comment1;
@@ -103,7 +103,7 @@ namespace UCon {
 		public override string ToString() {
 
 			StringBuilder sb = new StringBuilder();
-			sb.Append("Name: " + this.Symbol + ", ");
+			sb.Append("Name: " + this.FullName + ", ");
 			sb.Append("Value: " + this.Value + ", ");
 			sb.Append("\t\t" + BaseDimensions());
 			return sb.ToString();
@@ -125,6 +125,7 @@ namespace UCon {
 
 		public Unit Copy() {
 			Unit u = new Unit();
+			u.FullName = base.Symbol;
 			u.Value = this.Value;
 			for (int i = 0; i < nDim; i++) {
 				u.D[i] = this.d[i];
@@ -142,7 +143,7 @@ namespace UCon {
 			return u;
 		}
 
-		public static Unit operator /(Unit Arg1, Unit Arg2) {
+      public static Unit operator /(Unit Arg1, Unit Arg2) {
 			Unit u = new Unit();
 			if (Arg2.Value == 0) throw new DivideByZeroException();
 

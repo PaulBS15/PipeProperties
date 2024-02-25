@@ -15,7 +15,7 @@ namespace UCon {
 		/// Create a new instance of <see cref="TokenNotDefinedException"/>.
 		/// </summary>
 		/// <param name="UnitName">Name of the undefined Token.</param>
-		public UnitNotDefinedException(string UnitName) : base(UnitName + " is not defined.") {
+		public UnitNotDefinedException(string UnitName) : base($"Unit Name: {UnitName} is not defined.") {
 			this.UnitName = UnitName;
 		}
 	}

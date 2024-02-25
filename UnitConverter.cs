@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 
@@ -37,6 +38,43 @@ namespace UCon {
 			Debug.WriteLine($"Leftside: {LeftSide}, Rightside {RightSide}, Value: {Value}");
 			return sharedUnitConverter.Convert(LeftSide, RightSide, Value);
 		}
+
+		public static Unit GetBaseUnit(string UnitExpression) {
+			if (sharedUnitConverter == null) {
+				sharedUnitConverter= new UnitConverter();
+			}
+			if (UnitExpression == null) {
+				return null;
+			}
+			else {
+				return sharedUnitConverter.BaseUnit(UnitExpression.Trim());
+			}
+		}
+
+		public Unit BaseUnit(string Exp) {
+
+         string strippedExp;
+			bool isGauge = CheckIfPressure(Exp, out strippedExp);
+
+         try {
+            RPNExpression = GenerateRPN(Tokenize(FormatExpression(Exp)));
+         }
+         catch (UnitNotDefinedException e) {
+
+            //Could not convert unit, see if it is a gauge pressure unit
+
+            try {
+               if (isGauge)
+                  RPNExpression = GenerateRPN(Tokenize(FormatExpression(strippedExp)));
+               else
+                  throw e;
+            }
+            catch (Exception) {
+               throw e;
+            }
+         }
+         return EvaluateRPN(RPNExpression);
+		} 
 
 		char DecimalSeparator { get; } = '.';
 
@@ -237,6 +275,7 @@ namespace UCon {
 			firstEdit.Replace(']', ')');
 			firstEdit.Replace('}', ')');
 			string secondString = firstEdit.ToString();
+			Debug.Print($"In FormatExpression, after first edit, expression: {secondString}");
 
 			StringBuilder secondEdit = new StringBuilder(str.Length);
 			long parenthCheck = 0;
@@ -269,7 +308,10 @@ namespace UCon {
 			secondEdit.Replace('δ', 'Δ').Replace('²', '2').Replace('³', '3').Replace('º', '°');
 			secondEdit.Replace('×', '*').Replace('·', '*');
 			secondEdit.Replace('÷', '/');
-			return secondEdit.Replace(")(", ")*(").Replace(") (",")*(").ToString();
+			secondEdit.Replace(")(", ")*(").Replace(") (", ")*(");
+         //			return secondEdit.Replace(")(", ")*(").Replace(") (",")*(").ToString();
+         Debug.Print($"In FormatExpression, after second edit, expression: {secondEdit}");
+			return secondEdit.ToString();
 		}
 
 		static List<Token> GenerateRPN(IEnumerable<Token> Input) {
@@ -333,7 +375,14 @@ namespace UCon {
 
 				else throw new FormatException("Format exception, there is function without parenthesis");
 			}
-			return output;
+			Debug.WriteLine("\nTokenized Output Stack:");
+
+         foreach (Token t in output) {
+            Debug.WriteLine(t.ToString());
+         }
+         Debug.WriteLine("End of Tokenized Output Stack\n");
+
+         return output;
 		}
 
 		IEnumerable<Token> Tokenize(string Expression) {
@@ -351,13 +400,14 @@ namespace UCon {
 
 					case '(':
 						if (infix.Count > 0) {
-							if (infix.Last() is Unit) infix.Add(Multiply);
+							if (infix.Last() is Unit || infix.Last() is Number) infix.Add(Multiply);
 						}
 						infix.Add(Punctuation.LeftParenthesis);
 						break;
 
 					case ' ':
-						if (infix.Last() is Unit) infix.Add(Multiply);
+						if (pos < Expression.Length && Expression[pos] == ')') break;  // skip over space if next character is a )
+						if (infix.Last() is Unit || infix.Last() is Number || infix.Last().Symbol == ")") infix.Add(Multiply);
 						break;
 
 					case ')':
@@ -422,6 +472,9 @@ namespace UCon {
 									continue;
 								}
 								else if (ch.Is(Delimiters)) break;
+
+								// Could be a unit raised to a power, save character as a potential word
+
 								else {
 									partialWord.Append(ch);
 								}
@@ -432,6 +485,10 @@ namespace UCon {
 							if (double.TryParse(partialWord.ToString(), out double exp)) {
 								infix.Add(Power);
 								infix.Add(new Number(exp));
+							}
+							else if (partialWord.ToString().Length > 0 ) { 
+								Debug.WriteLine($"Throwing invalid number exception, string is {partialWord}");
+								throw new InvalidNumberException(partialWord.ToString());
 							}
 
 							if (ch == ' ' && pos++ < Expression.Length) {
@@ -445,6 +502,11 @@ namespace UCon {
 						break;
 				}
 			}
+			Debug.WriteLine("\nTokenized Stack:");
+			foreach(Token t in infix) {
+				Debug.WriteLine(t.ToString());
+			}
+			Debug.WriteLine("End of Tokenized Stack\n");
 			return infix;
 		}
 
@@ -527,8 +589,8 @@ namespace UCon {
 
 		static Unit PowerFunc(Unit x, Unit y) {
 
-			foreach(double d in y.D) {
-				if (d != 0.0) throw new Exception();
+			foreach (double d in y.D) {
+				if (d != 0.0) throw new InvalidPowerExceptipn(x,y);      // y must not have any base units. Must be a unitless number
 			}
 
 			double[] dim = new double[x.D.Length];
@@ -557,7 +619,7 @@ namespace UCon {
 					}
 				}
 				catch {
-					Debug.WriteLine("Error occured in LoadPrefixes while reading: " + ResourceFile);
+					Debug.WriteLine("Error occured in LoadTempUnits while reading: " + ResourceFile);
 				}
 			}
 		}
