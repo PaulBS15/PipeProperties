@@ -31,7 +31,11 @@ namespace UCon {
 		static UnitConverter sharedUnitConverter;
 
 		public static object Calculate(string LeftSide, string RightSide = "", double? Value = null) {
-			if (sharedUnitConverter == null) {
+
+         RightSide ??= "";
+         Value ??= 1.0;
+
+         if (sharedUnitConverter == null) {
 				sharedUnitConverter = new UnitConverter();
 			}
 			if (Value == null) Value = 1.0;
@@ -67,7 +71,7 @@ namespace UCon {
                if (isGauge)
                   RPNExpression = GenerateRPN(Tokenize(FormatExpression(strippedExp)));
                else
-                  throw e;
+                  throw new InvalidParameterException($"Unable to process {strippedExp}");
             }
             catch (Exception) {
                throw e;
@@ -123,6 +127,7 @@ namespace UCon {
 		}
 
 		public double Convert(string LeftSide, string RightSide = "", double? Value = null) {
+
 			Unit leftSide = new Unit();
 			Unit rightSide = new Unit();
 			string LeftSidetrim = LeftSide.Trim();
@@ -170,7 +175,7 @@ namespace UCon {
 					if (leftSideGauge)
 						RPNExpression = GenerateRPN(Tokenize(FormatExpression(strippedLeftSide)));
 					else
-						throw e;
+                  throw new InvalidParameterException($"Unable to process {strippedLeftSide}");
 				}
 				catch (Exception) {
 					throw e;
@@ -205,7 +210,7 @@ namespace UCon {
 						if (rightSideGauge)
 							RPNExpression = GenerateRPN(Tokenize(FormatExpression(strippedRightSide)));
 						else
-							throw e;
+							throw new InvalidParameterException($"Unable to process {strippedRightSide}");
 					}
 					catch (Exception) {
 						throw e;

@@ -1,5 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Text;
 
 namespace UCon {
 
@@ -14,6 +16,13 @@ namespace UCon {
 		public void Add(params T[] Items) {
 			foreach (var item in Items) {
 				List.Add(item.Symbol, item);
+				if (item.Symbol.Length == 1) {
+					char[] c = new char[1];
+					string s;
+					s = item.Symbol;
+					c[0] = s[0];
+					Debug.WriteLine($"Item Symbol {item.Symbol}, Character Code: {Encoding.ASCII.GetBytes(c)[0]}.");
+				}
 			}
 		}
 
