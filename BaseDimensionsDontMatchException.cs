@@ -1,7 +1,7 @@
 ﻿using System;
 
 namespace UCon {
-	class BaseDimensionsDontMatchException : Exception {
+   class BaseDimensionsDontMatchException : Exception {
 		public Unit ToUnit { get; }
 		public Unit FromUnit { get; }
 
