@@ -222,11 +222,11 @@ namespace UCon {
             if (!firstPassSuccess && rightSideGauge) {
                pressureToGauge = GaugePressure / rightSide.Value;
             }
-
+            if (!leftSide.EquivalentTo(rightSide)) throw new BaseDimensionsDontMatchException(leftSide, rightSide);
             u = leftSide / rightSide;
-            foreach (double d in u.D) {
-               if (Math.Abs(d / 1e-6) > 1.0) throw new BaseDimensionsDontMatchException(leftSide, rightSide);
-            }
+            //foreach (double d in u.D) {
+            //   if (Math.Abs(d / 1e-6) > 1.0) throw new BaseDimensionsDontMatchException(leftSide, rightSide);
+            //}
             return (Value == null) ? u.Value : u.Value * (double)Value - pressureToGauge;
          }
          return (Value == null) ? leftSide.Value : leftSide.Value * (double)Value;
