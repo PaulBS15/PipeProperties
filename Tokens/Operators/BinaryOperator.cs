@@ -1,36 +1,39 @@
 ﻿using System;
+using System.Runtime.Versioning;
 
 namespace UCon {
+   [SupportedOSPlatform("windows8.0")]
 
-	public class BinaryOperator : Operator {
 
-		Func<Unit,Unit,Unit> f;
-		const string BinaryArgumentError = "Arguments must all be of type Number";
+   public class BinaryOperator : Operator {
 
-		public BinaryOperator(string Symbol, int Priority, Func<Unit, Unit, Unit> F, bool NumbersOnly) : base(Symbol, 2, Priority, NumbersOnly) {
-			f = F;
-		}
+      private readonly Func<Unit, Unit, Unit> f;
+      const string BinaryArgumentError = "Arguments must all be of type Number";
 
-		public BinaryOperator(string Symbol, int Priority, Func<Unit, Unit, Unit> F) : this(Symbol, Priority, F, true) {
-		}
+      public BinaryOperator(string Symbol, int Priority, Func<Unit, Unit, Unit> F, bool NumbersOnly) : base(Symbol, 2, Priority, NumbersOnly) {
+         f = F;
+      }
 
-		Unit Invoke(Unit Arg1, Unit Arg2) {
-			return f(Arg1, Arg2);
-		}
+      public BinaryOperator(string Symbol, int Priority, Func<Unit, Unit, Unit> F) : this(Symbol, Priority, F, true) {
+      }
 
-		public override Unit Invoke(Unit[] Parameters) {
-			if (NumbersOnly) {
-				for (int i = 0; i < Parameters[0].D.Length; i++) {
-					if (Parameters[0].D[i] != 0 || Parameters[1].D[i] != 0) {
-						throw new ArgumentException();
-					}
-				}
-			}
-			return Invoke(Parameters[0], Parameters[1]);
-		}
+      Unit Invoke(Unit Arg1, Unit Arg2) {
+         return f(Arg1, Arg2);
+      }
 
-		public override Number Invoke(Number[] Parameters) {
-			return Invoke(Parameters[0], Parameters[1]);
-		}
-	}
+      public override Unit Invoke(Unit[] Parameters) {
+         if (NumbersOnly) {
+            for (int i = 0; i < Parameters[0].D.Length; i++) {
+               if (Parameters[0].D[i] != 0 || Parameters[1].D[i] != 0) {
+                  throw new ArgumentException();
+               }
+            }
+         }
+         return Invoke(Parameters[0], Parameters[1]);
+      }
+
+      public override Number Invoke(Number[] Parameters) {
+         return Invoke(Parameters[0], Parameters[1]);
+      }
+   }
 }

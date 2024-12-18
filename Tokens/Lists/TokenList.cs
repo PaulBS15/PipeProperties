@@ -1,54 +1,77 @@
-﻿using System.Collections;
+﻿using MyLogger;
+using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Runtime.Versioning;
 using System.Text;
 
 namespace UCon {
+   [SupportedOSPlatform("windows8.0")]
+   public class TokenList<T> : IEnumerable<T> where T : Token {
 
-	public class TokenList<T> : IEnumerable<T> where T : Token {
+      protected readonly Dictionary<string, T> List = [];
+      protected bool AddSymbol = false;
 
-		protected readonly Dictionary<string, T> List = new Dictionary<string, T>();
+      public TokenList(params T[] Items) {
+         Add(Items);
+      }
 
-		public TokenList(params T[] Items) {
-			Add(Items);
-		}
+      public void Add(params T[] Items) {
+         foreach (var item in Items) {
+            AddSymbol = true;
+            List.Add(item.Symbol, item);
+            if (item.Symbol.Length == 1 && AddSymbol) {
+               char[] c = [item.Symbol[0]];
+               //string s;
+               //s = item.Symbol;
+               //c[0] = s[0];
+               Logger.LogIfDebugging($"Item Symbol {item.Symbol}, Character Code: {ByteCodeToString(c, Encoding.BigEndianUnicode)}.");
+               if (char.IsLetter(c[0])) {
+                  Logger.LogIfDebugging($"{c[0]} is a letter or digit");
+               }
+               else {
+                  Logger.LogIfDebugging($"{c[0]} is not a letter or digit");
+               }
+            }
+         }
+      }
 
-		public void Add(params T[] Items) {
-			foreach (var item in Items) {
-				List.Add(item.Symbol, item);
-				if (item.Symbol.Length == 1) {
-					char[] c = new char[1];
-					string s;
-					s = item.Symbol;
-					c[0] = s[0];
-					Debug.WriteLine($"Item Symbol {item.Symbol}, Character Code: {Encoding.ASCII.GetBytes(c)[0]}.");
-				}
-			}
-		}
+      private string ByteCodeToString(char[] C, Encoding EncodingType) {
 
-		public void Clear() => List.Clear();
+         string s = string.Empty;
+         byte[] bytes = EncodingType.GetBytes(C);
+         foreach (byte b in bytes) {
+            s += $"{b,0:x2} ";
+         }
+         return s.Trim();
+      }
+      public void Add(bool AddSymbolToValidLetter, params T[] Items) {
+         AddSymbol = AddSymbolToValidLetter;
+         Add(Items);
+      }
 
-		public bool Remove(string Symbol) => List.Remove(Symbol);
+      public void Clear() => List.Clear();
 
-		public virtual bool Contains(string Symbol) => List.ContainsKey(Symbol);
+      public bool Remove(string Symbol) => List.Remove(Symbol);
 
-		public virtual T this[string key] {
-			get {
-				if (List.ContainsKey(key)) {
-					return List[key];
-				}
-				throw new KeyNotFoundException(key);
-			}
-		}
+      public virtual bool Contains(string Symbol) => List.ContainsKey(Symbol);
 
-		public virtual IEnumerator<T> GetEnumerator() {
-			return List.Values.GetEnumerator();
-		}
+      public virtual T this[string key] {
+         get {
+            if (List.TryGetValue(key, out T value)) {
+               return value;
+            }
+            throw new KeyNotFoundException(key);
+         }
+      }
 
-		IEnumerator IEnumerable.GetEnumerator() {
-			return GetEnumerator();
-		}
-		public TokenList<T> Branch() => new BranchedTokenList<T>(this);
-	}
+      public virtual IEnumerator<T> GetEnumerator() {
+         return List.Values.GetEnumerator();
+      }
+
+      IEnumerator IEnumerable.GetEnumerator() {
+         return GetEnumerator();
+      }
+      public TokenList<T> Branch() => new BranchedTokenList<T>(this);
+   }
 
 }
