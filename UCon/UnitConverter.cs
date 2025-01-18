@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Reflection;
 using System.Runtime.Versioning;
 using System.Text;
@@ -51,15 +52,19 @@ namespace UCon {
 
          Logger.LogIfDebugging($"Leftside: {LeftSide}, Rightside {RightSide}, Value: {Value}");
 
+         if (LeftSide == string.Empty && RightSide != string.Empty){
+            interpretedRightSide = sharedUnitConverter.InterpretUnit(RightSide);
+            return Convert(interpretedRightSide, value, true);
+         }
          interpretedLeftSide = sharedUnitConverter.InterpretUnit(LeftSide);
          if (RightSide != string.Empty) {
             interpretedRightSide = sharedUnitConverter.InterpretUnit(RightSide);
-         }
+            return Convert(interpretedLeftSide, interpretedRightSide, Value);
+        }
          else {
-            double ret = Convert(interpretedLeftSide, value);
-            return ret;
+            return Convert(interpretedLeftSide, value);
+            //return retv
          }
-         return Convert(interpretedLeftSide, interpretedRightSide, Value);
       }
 
       public static Unit GetBaseUnit(string UnitExpression) {
@@ -180,9 +185,12 @@ namespace UCon {
 
       // Convert from Specified Unit to SI Unit since Right Side Unit is not specified
 
-      internal static double Convert(InterpretedUnit InterpretedUnit, double Value) {
+      internal static double Convert(InterpretedUnit InterpretedUnit, double Value, bool Invert=false) {
 
-         return InterpretedUnit.Unit.Factor*Value;
+         if (!Invert) 
+            return InterpretedUnit.Unit.Factor*Value;
+         else
+            return Value/InterpretedUnit.Unit.Factor;
       }
 
       internal static double Convert(InterpretedUnit LeftUnit, InterpretedUnit RightUnit, double? Value) {
@@ -740,6 +748,11 @@ namespace UCon {
       }
 
       public static void AddValidLetter(char Char) { }
+
+      public static bool IsTemperatureUnit(string Unit) {
+
+         return TemperatureUnits.TryGetValue(Unit, out _);
+      }
 
    } //class
 
